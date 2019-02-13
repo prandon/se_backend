@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 let userController = {};
@@ -12,10 +13,17 @@ userController.home = (req, res) => {
 }
 
 userController.register = (req, res) => {
-    //redirect to registration page
-    res.send({
-        message: "registration"
-    });
+    jwt.verify(req.token, 'thisismysecretKey', (err, authData) => {
+        if(err){
+          res.sendStatus(403);
+        }
+        else{
+          res.json({
+            message: 'registration',
+            authData
+        });
+        }
+    })
 }
 
 userController.doRegister = (req, res) => {
@@ -37,11 +45,28 @@ userController.doRegister = (req, res) => {
 }
 
 userController.doLogin = (req, res) => {
-    passport.authenticate('local')(req, res, function () {
-        res.send({
-            message: "Success"
+    //Basic authentication handler
+    // passport.authenticate('local')(req, res, function () {
+    //     res.send({
+    //         message: "Success"
+    //     })
+    // });
+
+    //Custom authentication handler
+    passport.authenticate('local', function(err, user, info) {
+        if (err) { return next(err) }
+        if (!user) {
+          return res.json(401, { error: 'message' });
+        }
+    
+        //user has authenticated correctly thus we create a JWT token 
+        jwt.sign({user: user}, 'thisismysecretKey', { expiresIn: 30 }, (err, token) => {
+            res.json({
+              token
+            })
         })
-    });
+    
+    })(req, res);
 }
 
 userController.logout = function(req, res) {
