@@ -1,6 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose')
+var bcrypt = require('bcrypt-nodejs');
+var async = require('async');
+var crypto = require('crypto');
+var nodemailer = require('nodemailer');
 const authRoutes = require('./routes/AuthRoutes');
 
 const app = express();
@@ -32,6 +36,9 @@ app.get('/', (req, res) => {
 //setup passport and passport-local strategy
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+
+//Adding cookie parser middleware
+//app.use(cookieParser())
 
 //middleware for express-session
 app.use(require('express-session')({
